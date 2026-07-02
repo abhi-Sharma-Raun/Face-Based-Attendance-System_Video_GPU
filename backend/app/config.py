@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     sharpness_threshold: int
     face_size_threshold: int
     pose_symmetry_threshold: float
-    qdranrt_url: str
+    qdrant_url: str
     qdrant_api_key: str
     class Config:
         env_file = ".env"
