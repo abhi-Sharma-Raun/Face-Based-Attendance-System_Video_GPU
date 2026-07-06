@@ -21,14 +21,14 @@ def get_det_rec_model():
     global _det_rec_model
     if _det_rec_model is None:
         _det_rec_model = FaceAnalysis(name="buffalo_l", providers=providers, allowed_modules=["detection", "recognition"], root="/models")
-        _det_rec_model.prepare(ctx_id=ctx_id, det_size=(320, 256), det_thresh=0.5)
+        _det_rec_model.prepare(ctx_id=ctx_id, det_size=(320, 256), det_thresh=0.7)
     return _det_rec_model
 
 def get_det_model():
     global _det_model
     if _det_model is None:
         _det_model = FaceAnalysis(name="buffalo_l", providers=providers, allowed_modules=["detection"], root="/models")
-        _det_model.prepare(ctx_id=ctx_id, det_size=(320, 256), det_thresh=0.5)
+        _det_model.prepare(ctx_id=ctx_id, det_size=(320, 256), det_thresh=0.6)
     return _det_model
 
 def get_face_register_embedding(ud_raw_prof_bytes):
@@ -102,6 +102,7 @@ def eval_faces_batch(faces_list: list, laplacian_batch: List[torch.tensor]) -> l
         variance_mask = np.array(variances) >= settings.sharpness_threshold
         valid_mask = face_size_mask & variance_mask
         
+                
         valid_indices = np.where(valid_mask)[0].tolist()    
         if not valid_indices:
             valid_face_counts.append(0)

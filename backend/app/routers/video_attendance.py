@@ -8,6 +8,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from qdrant_client.models import QueryRequest, SearchParams
 from .. import utils, schemas
 from ..qdrant_setup import client, collection_name
+from ..config import settings
 
 router = APIRouter(
     prefix="/video_attendance",
@@ -38,13 +39,15 @@ async def mark_attendance(video: UploadFile = File(...)):
     tot_frames = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
     k_fps = int(vid.get(cv2.CAP_PROP_FPS)) if vid.get(cv2.CAP_PROP_FPS) > 0 else 30
     
-    N = int(3 * k_fps / 4)
+    N = int(settings.tot_secs_nbd * k_fps / settings.num_frame_select)
     if N < 1: 
         N = 1
         
     best_frames = []
     tot_best_faces = 0
     target_frames = list(range(N, tot_frames + 1, N))
+    
+    print(f"Total target frames: {len(target_frames)}")
     
     try:
         # Utilize optimized neighborhood batch evaluator
@@ -63,7 +66,9 @@ async def mark_attendance(video: UploadFile = File(...)):
     if not best_frames:
         print("Sent video has no readable frame streams.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sent video has no readable frame streams.")
-
+    
+    print(f"! Frame Selection Done ! total best frames: {len(best_frames)}")
+    
     # Extract facial embeddings
     extracted_embeddings = []
     for frame in best_frames:
@@ -84,16 +89,20 @@ async def mark_attendance(video: UploadFile = File(...)):
         print("No faces matching baseline standards found in sample arrays.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No faces matching baseline standards found in sample arrays.")
         
-    # Convert extracted session embeddings to GPU Tensor
-#    all_pres_stud_embs = torch.tensor(extracted_embeddings, dtype=torch.float32, device=utils.device)
+    print(f"! Embedding Extraction done for recognition !")
     
     try:
+        CHUNK_SIZE=45
         params = SearchParams(exact=True)
         search_queries = [QueryRequest(query=v.tolist(), limit=1, score_threshold=FACE_SIMILARITY_THRESHOLD, with_payload=True, with_vector=False, params=params) for v in extracted_embeddings]
-        qd_response = client.query_batch_points(
-            collection_name = collection_name,
-            requests = search_queries
-        )
+        qd_response = []
+        for i in range(0, len(search_queries), CHUNK_SIZE):
+            batch = search_queries[i:i + CHUNK_SIZE]
+            batch_response = client.query_batch_points(
+                collection_name = collection_name,
+                requests = batch
+            )
+            qd_response.extend(batch_response)
     except Exception:
         traceback.print_exc()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Vector DB similarity search failed")

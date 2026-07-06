@@ -6,7 +6,8 @@ from .config import settings
 client = QdrantClient(
     url=settings.qdrant_url,
     api_key=settings.qdrant_api_key,
-    cloud_inference=True
+    cloud_inference=True,
+    timeout=60
 )
 
 collection_name = "Face_Embeddings-All"

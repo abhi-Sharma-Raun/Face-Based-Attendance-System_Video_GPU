@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     sharpness_threshold: int
     face_size_threshold: int
     pose_symmetry_threshold: float
+    tot_secs_nbd: int
+    num_frame_select: int
     qdrant_url: str
     qdrant_api_key: str
     allowed_url_1: str
