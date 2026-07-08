@@ -4,11 +4,15 @@ import time
 import cv2
 import numpy as np
 import traceback
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from qdrant_client.models import QueryRequest, SearchParams
-from .. import utils, schemas
-from ..qdrant_setup import client, collection_name
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Form, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import select, insert
+from datetime import date
+from ..utils.models_frame_selection import select_nbd_frame_batch, get_det_rec_model
+from ..utils.qdrant_utils import qdrant_cosine_search
+from .. import schemas, models
 from ..config import settings
+from ..database import get_db
 
 router = APIRouter(
     prefix="/video_attendance",
@@ -18,14 +22,21 @@ router = APIRouter(
 FACE_SIMILARITY_THRESHOLD = 0.55
 
 @router.post("", response_model=schemas.Video_AttendanceResponse)
-async def mark_attendance(video: UploadFile = File(...)):
+async def mark_attendance(class_name: str = Form(...), video: UploadFile = File(...), db: Session = Depends(get_db)):
     
-    det_rec_model = utils.get_det_rec_model()
-    det_model = utils.get_det_model()
-    if not det_rec_model or not det_model:
+    det_rec_model = get_det_rec_model()
+    
+    if not det_rec_model:
         print("Face detection and recognition models are not initialized.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Face detection and recognition models are not initialized.")
     s_time = time.time()
+    
+    t_class = db.scalars(select(models.Class).where(models.Class.class_name == class_name)).one_or_none()
+    if t_class is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The class does not exists")
+    enrolled_students = t_class.enrolled_students
+    if not enrolled_students:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There are no enrolled students in the class")
     
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
@@ -52,7 +63,7 @@ async def mark_attendance(video: UploadFile = File(...)):
     try:
         # Utilize optimized neighborhood batch evaluator
         for frame_num in target_frames:
-            best_frame, tot_face_detected = utils.select_nbd_frame_batch(frame_num, vid, tot_frames)
+            best_frame, tot_face_detected = select_nbd_frame_batch(frame_num, vid, tot_frames)
             tot_best_faces += tot_face_detected
             if tot_face_detected!=0:
                 best_frames.append(best_frame)
@@ -92,21 +103,12 @@ async def mark_attendance(video: UploadFile = File(...)):
     print(f"! Embedding Extraction done for recognition !")
     
     try:
-        CHUNK_SIZE=45
-        params = SearchParams(exact=True)
-        search_queries = [QueryRequest(query=v.tolist(), limit=1, score_threshold=FACE_SIMILARITY_THRESHOLD, with_payload=True, with_vector=False, params=params) for v in extracted_embeddings]
-        qd_response = []
-        for i in range(0, len(search_queries), CHUNK_SIZE):
-            batch = search_queries[i:i + CHUNK_SIZE]
-            batch_response = client.query_batch_points(
-                collection_name = collection_name,
-                requests = batch
-            )
-            qd_response.extend(batch_response)
+        enrolled_studs_rolls = [stud.roll_num for stud in enrolled_students]
+        qd_response = qdrant_cosine_search(extracted_embeddings, purpose="attendance", studs_ids=enrolled_studs_rolls)
     except Exception:
         traceback.print_exc()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Vector DB similarity search failed")
-    
+
     pres_studs_roll = []
     pres_studs_details = []
     print(qd_response)
@@ -117,6 +119,14 @@ async def mark_attendance(video: UploadFile = File(...)):
             name = result.points[0].payload["name"]
             pres_studs_roll.append(roll_num)
             pres_studs_details.append(schemas.PresentStudent(roll_num = roll_num, name=name))
-            
+    
+    if len(pres_studs_roll)==0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There are no students of the class in the image")
+    
+    present_students_db = [ {"class_id":t_class.class_id, "student_roll":roll, "attendance_date":date.today()} for roll in pres_studs_roll]
+    stmt = insert(models.Attendance).on_conflict_do_nothing(index_elements=["student_roll", "attendance_date", "class_id"])
+    db.execute(stmt, present_students_db)
+    
+    db.commit()
     print(f"TOTAL EXECUTION PIPELINE LATENCY: {time.time() - s_time:.4f} seconds")
     return schemas.Video_AttendanceResponse(students=pres_studs_details)

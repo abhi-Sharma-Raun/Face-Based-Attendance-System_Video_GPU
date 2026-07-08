@@ -14,14 +14,15 @@ collection_name = "Face_Embeddings-All"
 if client.collection_exists(collection_name=collection_name):
     print("Collection exists")
 else:
+    vector_params = VectorParams(size=512,distance=Distance.COSINE)
     client.create_collection(
-    collection_name=collection_name,
-    vectors_config=VectorParams(
-        size=512,
-        distance=Distance.COSINE
-    ),
-    hnsw_config=HnswConfigDiff(
-        m=0,  
-    ))
+        collection_name=collection_name,
+        vectors_config={
+            "front": vector_params,
+            "left": vector_params,
+            "right": vector_params,
+        },
+        hnsw_config=HnswConfigDiff(m=0)
+    )
     print("Collection created successfully")
     

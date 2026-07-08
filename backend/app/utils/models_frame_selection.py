@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from typing import List, Optional
 from insightface.app import FaceAnalysis
-from .config import settings
+from ..config import settings
 
 # Determine device and providers
 is_gpu = torch.cuda.is_available()
@@ -31,21 +31,6 @@ def get_det_model():
         _det_model.prepare(ctx_id=ctx_id, det_size=(320, 256), det_thresh=0.6)
     return _det_model
 
-def get_face_register_embedding(ud_raw_prof_bytes):
-    det_rec_model = get_det_rec_model()
-    try:
-        ud_profile = np.frombuffer(ud_raw_prof_bytes, dtype=np.uint8)
-        profile = cv2.imdecode(ud_profile, cv2.IMREAD_COLOR)
-    except Exception:
-        raise Exception("Unable to decode image bytes")
-        
-    faces = det_rec_model.get(profile)
-    if len(faces) != 1:
-        return None
-        
-    embedding = faces[0].embedding
-    norm = np.linalg.norm(embedding)
-    return embedding / norm if norm > 0 else embedding
 
 @torch.inference_mode()
 def lighting_check_gpu(frames_tensor: torch.Tensor) -> torch.Tensor:
@@ -57,7 +42,7 @@ def lighting_check_gpu(frames_tensor: torch.Tensor) -> torch.Tensor:
     tot_pixels = frames_tensor.shape[1] * frames_tensor.shape[2] * frames_tensor.shape[3]
     
     glare_pixels = torch.sum(frames_tensor >= 250, dim=(1, 2, 3))
-    shadow_pixels = torch.sum(frames_tensor <= 15, dim=(1, 2, 3))
+    shadow_pixels = torch.sum(frames_tensor <= 10, dim=(1, 2, 3))
     
     glare_ratio = glare_pixels.float() / tot_pixels
     shadow_ratio = shadow_pixels.float() / tot_pixels
