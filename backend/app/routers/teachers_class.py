@@ -16,6 +16,10 @@ router = APIRouter(
 @router.post("/teachers/add_teacher", response_model=schemas.General_201_response)
 def add_teacher(teacher: schemas.TeacherCreate, db: Session = Depends(get_db)):
     
+    '''
+    This is for admin. He can add teachers.
+    '''
+    
     if db.query(models.Teacher).filter(models.Teacher.email == teacher.email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Teacher with email {teacher.email} already exists")
     
@@ -37,7 +41,9 @@ def remove_teacher(teacher, db:Session = Depends(get_db)):
     
 @router.post("/class/add_class", response_model=schemas.General_201_response)
 def add_class(class_d: schemas.ClassCreate, db: Session = Depends(get_db)):
-    
+    '''
+    This is for admin he can add classes.
+    '''
     filter1 = (models.Class.batch_start_year == class_d.batch_start_year) and (models.Class.curr_year == class_d.curr_year) and (models.Class.branch == class_d.branch)
     dupl =  db.query(models.Class).filter((models.Class.class_name == class_d.class_name) or filter1).first()  
       
@@ -61,6 +67,10 @@ def add_class(class_d: schemas.ClassCreate, db: Session = Depends(get_db)):
 
 @router.post("/class/add_students")
 def add_student_class(students_class_data: schemas.AddSudents_class, db: Session=Depends(get_db)):
+    
+    '''
+    This is for Teachers. he can add students to a class.
+    '''
     
     students_roll_list = students_class_data.student_roll_list
     class_name = students_class_data.class_name

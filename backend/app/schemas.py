@@ -15,7 +15,7 @@ class Video_AttendanceResponse(BaseModel):
     
 class Face_registrationResponse(BaseModel):
     name: str
-    roll_num: int
+    roll_num: str
     
 class TeacherCreate(BaseModel):
     name: str

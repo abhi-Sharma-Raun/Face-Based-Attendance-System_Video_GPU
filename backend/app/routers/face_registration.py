@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import time
 from qdrant_client.models import PointStruct
-import uuid_utils
+import uuid_utils.compat as uuid_utils
+import traceback
 from ..utils.face_register_utils import get_face_register_embedding, is_3profiles_same_person
 from .. import schemas, models
 from ..database import get_db
@@ -57,13 +58,20 @@ async def register_profile(name: str = Form(...), email: str = Form(...), roll_n
     
     #check to ensure there are no 2 students with same image
     q_resp = qdrant_cosine_search([front_emb, left_emb, right_emb], purpose="Face_registration")
-    if len(q_resp)>1:  #Try to add the roll_num of the student with whom is the conflict
+    print(q_resp)
+    is_person_exists_qdrant=False
+    for v in q_resp:
+        if v.points:
+            is_person_exists_qdrant=True
+            break  
+    if is_person_exists_qdrant:  #Try to add the roll_num of the student with whom is the conflict
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="There is already a person with same image.")
     
     user_id = uuid_utils.uuid7()
     new_user = models.Users(user_id=user_id, role="student", email= email)
     new_student = models.Students(user_id=user_id, name=name, roll_num=roll_num, email=email)
     db.add(new_user)
+    db.flush()
     db.add(new_student)
     
     try:
@@ -75,9 +83,10 @@ async def register_profile(name: str = Form(...), email: str = Form(...), roll_n
         }
         client.upsert(
             collection_name="Face_Embeddings-All",   
-            points = PointStruct(id=user_id, vector=vectors, payload=payload_)
+            points = [PointStruct(id=user_id, vector=vectors, payload=payload_)]
         )
     except Exception as e:
+        traceback.print_exc()
         db.rollback()
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="No Problem from your side.This is our")

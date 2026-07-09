@@ -4,7 +4,7 @@ from sqlalchemy import Column,String, ForeignKey, UniqueConstraint, Enum, Table,
 from sqlalchemy.sql.sqltypes import TIMESTAMP, INTEGER
 from sqlalchemy.sql.expression import text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-import uuid_utils
+import uuid_utils.compat as uuid_utils
 from typing import Literal, List
 from .database import Base
 

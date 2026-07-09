@@ -1,4 +1,4 @@
-from qdrant_client.models import HasIdCondition, QueryRequest, SearchParams, Filter, FieldCondition, MatchAny, Prefetch, Fusion
+from qdrant_client.models import HasIdCondition, QueryRequest, SearchParams, Filter, FieldCondition, MatchAny, Prefetch, Fusion, FusionQuery
 from ..qdrant_setup import client, collection_name
 from ..config import settings
 from typing import List, Any, Literal, Optional
@@ -15,12 +15,12 @@ def build_query(embedding, shared_filter=None):
         Prefetch(query=embed_list, using="right", filter=shared_filter, params=params),
     ]
     query_req = QueryRequest(
-        prefetch=prefetch_, query=Fusion.MAX, limit=1, score_threshold=settings.face_similarity_threshold,
+        prefetch=prefetch_, query=FusionQuery(fusion=Fusion.RRF), limit=1, score_threshold=settings.face_similarity_threshold,
         with_payload=True, with_vector=False,
     )
     return query_req
 
-def qdrant_cosine_search(embeddings: List[Any], purpose: Literal["Face_registration", "attendance"], studs_ids: Optional[List[Any]|None]):
+def qdrant_cosine_search(embeddings: List[Any], purpose: Literal["Face_registration", "attendance"], studs_ids: Optional[List[Any]]=None):
     
     
     if purpose == "Face_registration":
@@ -35,7 +35,7 @@ def qdrant_cosine_search(embeddings: List[Any], purpose: Literal["Face_registrat
         assert studs_ids is not None
         assert len(studs_ids)>0
         CHUNK_SIZE=80
-        qd_response = [],
+        qd_response = []
         shared_filter = Filter(
             must=[HasIdCondition(has_id=studs_ids)]
         )

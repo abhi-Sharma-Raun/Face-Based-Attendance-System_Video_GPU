@@ -20,7 +20,7 @@ def get_face_register_embedding(ud_raw_prof_bytes):
 
 def is_3profiles_same_person(front_emb: np.ndarray, left_emb: np.ndarray, right_emb: np.ndarray) -> bool:
     
-    emb_matrix = np.stack(front_emb, left_emb, right_emb)
+    emb_matrix = np.stack((front_emb, left_emb, right_emb))
     cosine_sim = np.matmul(emb_matrix, emb_matrix.T)
     front_left, front_left, front_right = cosine_sim[0][1], cosine_sim[0][2], cosine_sim[1][2]
     if front_left>0.5 and front_right>0.5 and front_left>0.5:
