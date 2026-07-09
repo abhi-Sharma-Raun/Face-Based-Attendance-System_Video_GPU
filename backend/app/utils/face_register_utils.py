@@ -23,7 +23,7 @@ def is_3profiles_same_person(front_emb: np.ndarray, left_emb: np.ndarray, right_
     emb_matrix = np.stack((front_emb, left_emb, right_emb))
     cosine_sim = np.matmul(emb_matrix, emb_matrix.T)
     front_left, front_left, front_right = cosine_sim[0][1], cosine_sim[0][2], cosine_sim[1][2]
-    if front_left>0.5 and front_right>0.5 and front_left>0.5:
+    if front_left>0.43 and front_right>0.43 and front_left>0.43:
         return True
     else:
         return False

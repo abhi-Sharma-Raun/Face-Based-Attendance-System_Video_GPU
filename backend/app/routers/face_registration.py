@@ -53,19 +53,23 @@ async def register_profile(name: str = Form(...), email: str = Form(...), roll_n
     if front_emb is None or left_emb is None or right_emb is None:
         raise HTTPException(status_code=400, detail = "No Face or Multiple Faces Detected in one of the profiles. Please ensure each profile contains exactly one face.")
     if not is_3profiles_same_person(front_emb, left_emb, right_emb):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="All the 3 profiles do not belong to same person")
+        print("ALL profiles must be of same person")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="All the 3 profiles must belong to same person")
     
     
     #check to ensure there are no 2 students with same image
     q_resp = qdrant_cosine_search([front_emb, left_emb, right_emb], purpose="Face_registration")
     print(q_resp)
     is_person_exists_qdrant=False
+    exist_person_roll=set()
     for v in q_resp:
         if v.points:
+            exist_person_roll.add(v.points[0].payload["roll_num"])
             is_person_exists_qdrant=True
             break  
     if is_person_exists_qdrant:  #Try to add the roll_num of the student with whom is the conflict
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="There is already a person with same image.")
+        print("There is already a person with same image")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"There is already a person with roll_num--{exist_person_roll} with same image.")
     
     user_id = uuid_utils.uuid7()
     new_user = models.Users(user_id=user_id, role="student", email= email)
@@ -88,7 +92,6 @@ async def register_profile(name: str = Form(...), email: str = Form(...), roll_n
     except Exception as e:
         traceback.print_exc()
         db.rollback()
-        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="No Problem from your side.This is our")
     
     db.commit()
