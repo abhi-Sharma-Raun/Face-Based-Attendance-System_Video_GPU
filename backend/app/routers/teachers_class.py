@@ -100,4 +100,17 @@ def add_student_class(students_class_data: schemas.AddSudents_class, db: Session
     return schemas.General_201_response(message=response_str)
     
         
+@router.get("/class/view_all_classes", response_model=schemas.All_Classes_response)
+def view_all_classes(db: Session=Depends(get_db)):
     
+    all_classes = db.scalars(select(models.Class)).all()
+    
+    if not all_classes:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There are no classes")
+    result = []
+    for class_ in all_classes:
+        t_class = schemas.One_Class_Response(class_name=class_.class_name , batch_start_year= class_.batch_start_year, curr_year= class_.curr_year,
+                                     course_id= class_.course_id, department= class_.department, branch= class_.branch)
+        result.append(t_class)
+        
+    return {"all_classes": result}

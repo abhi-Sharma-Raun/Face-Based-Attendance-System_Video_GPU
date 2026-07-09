@@ -42,12 +42,14 @@ def view_attendance_student(roll_num: str, class_name: str, db: Session=Depends(
 
 
 @router.post("/view-attendance/by_teacher")
-def view_attendance_teacher(class_name: str, students_roll_list: List[str]=None, db: Session=Depends(get_db)):
+def view_attendance_teacher(students_data: schemas.Teacher_ViewAttendance_Request, db: Session=Depends(get_db)):
     '''
     This route is for teacher for viewing the attendance of selective students. If no students are provided, all students attendance is returned.
     It returns a csv stream which you can download
     '''
     
+    class_name = students_data.class_name
+    students_roll_list = students_data.students_roll_list
     t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()
     if not t_class:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The class do not exists")
@@ -64,11 +66,12 @@ def view_attendance_teacher(class_name: str, students_roll_list: List[str]=None,
     res={}
     for v in attendance_record:
         roll_num=v.student_roll
-        res.get(roll_num, []).append(v.attendance_date.isoformat())
+        if roll_num not in res:
+            res[roll_num] = []
+        res[roll_num].append(v.attendance_date.isoformat())
         
     for roll_num, pres_dates in res.items():
-        writer.writerow([roll_num, ", ".join(pres_dates)])
-        
+        writer.writerow([roll_num, ", ".join(pres_dates)])        
     output.seek(0)
     
     return StreamingResponse(

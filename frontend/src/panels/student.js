@@ -116,7 +116,7 @@ async function submitRegistration() {
     try {
         const res = await fetch(REGISTRATION_ENDPOINT, { method: 'POST', body: formData });
         if (res.ok) { alert("Registration complete!"); resetScanState(); window.location.href = "index.html"; }
-    } catch (err) { alert("Submission error: " + err.message); }
+    } catch (err) { errorData = await res.json(); alert(errorData.detail); }
 }
 
 async function handleAttendanceQuery(e) {

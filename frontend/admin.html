@@ -19,6 +19,7 @@
         <ul class="nav nav-pills mb-4" id="admin-tabs" role="tablist">
             <li class="nav-item"><a class="nav-link active" id="tab-add-teacher" data-toggle="pill" href="#pane-add-teacher">➕ Provision Faculty</a></li>
             <li class="nav-item"><a class="nav-link" id="tab-add-class" data-toggle="pill" href="#pane-add-class">🏛️ Initialize Classes</a></li>
+            <li class="nav-item"><a class="nav-link" id="tab-view-classes" data-toggle="pill" href="#pane-view-classes">🏛️ View Active Classes</a></li>      
         </ul>
 
         <div class="tab-content border p-4 bg-white rounded shadow-sm">
@@ -36,7 +37,7 @@
                 <h4>Provision Operational Academic Class</h4>
                 <form id="form-add-class" class="form-grid">
                     <div class="form-group"><label class="font-weight-bold">Class Unified Name</label><input type="text" id="class-name" class="form-control" placeholder="CS-Elective-A" required></div>
-                    <div class="form-group"><label class="font-weight-bold">Batch Start Year</label><input type="number" id="class-start-year" class="form-control" placeholder="2025" required></div>
+                    <div class="form-group"><label class="font-weight-bold">Batch (Start Year)</label><input type="number" id="batch-start-year" class="form-control" placeholder="2025" required></div>
                     <div class="form-group"><label class="font-weight-bold">Current Academic Year</label><input type="number" id="class-curr-year" class="form-control" placeholder="3" required></div>
                     <div class="form-group"><label class="font-weight-bold">Course ID Identifier</label><input type="text" id="class-course-id" class="form-control" placeholder="CSE-302" required></div>
                     <div class="form-group"><label class="font-weight-bold">Department Code</label><input type="text" id="class-dept" class="form-control" placeholder="CSE" required></div>
@@ -44,6 +45,32 @@
                     <div class="form-group full-width-field mt-2"><button type="submit" class="btn btn-dark px-4">Initialize System Class</button></div>
                 </form>
             </div>
+            <div class="tab-pane fade" id="pane-view-classes">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Active Academic Classes</h4>
+                    <button id="btn-refresh-classes" class="btn btn-sm btn-outline-dark">🔄 Refresh List</button>
+                </div>
+    
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Class Name</th>
+                                <th>Course ID</th>
+                                <th>Department</th>
+                                <th>Batch (Start Year)</th>
+                                <th>Current Year</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classes-table-body">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Loading academic structures...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

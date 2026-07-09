@@ -72,18 +72,28 @@ async function handleRecordExport(e) {
     const className = document.getElementById('export-class-name').value.trim();
     const filter = document.getElementById('export-student-rolls').value.trim();
     
-    let endpoint = `${BACKEND_URL}/attendance/view-attendance/by_teacher?class_name=${encodeURIComponent(className)}`;
-    let bodyData = filter ? filter.split(',').map(r => r.trim()).filter(r => r.length) : null;
-
+    let endpoint = `${BACKEND_URL}/attendance/view-attendance/by_teacher`;
+    let rollList = filter ? filter.split(',').map(r => r.trim()).filter(r => r.length) : null;
+    const payload = {
+        class_name: className,
+        students_roll_list: rollList
+    };
     try {
         const res = await fetch(endpoint, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: bodyData ? JSON.stringify(bodyData) : null
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
+        
         if (res.ok) {
             const blob = await res.blob();
-            const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob);
-            a.download = `records_${className}.csv`; a.click();
+            const a = document.createElement('a'); 
+            a.href = window.URL.createObjectURL(blob);
+            a.download = `records_${className}.csv`; 
+            a.click();
+        } else {
+            const errData = await res.json();
+            alert(`Export failed: ${errData.detail || "Unknown error"}`);
         }
-    } catch { alert("Export mapping issue."); }
+    } catch (err) {console.error(err); alert("Export mapping issue."); }
 }

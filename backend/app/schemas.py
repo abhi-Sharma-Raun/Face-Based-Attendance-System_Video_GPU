@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import date
 
 
@@ -38,6 +38,10 @@ class AddSudents_class(BaseModel):
     student_roll_list: List[str]
     class_name: str
     
+class Teacher_ViewAttendance_Request(BaseModel):
+    class_name: str
+    students_roll_list: Optional[List[str]]=None    
+    
 class Student_ViewAttendance_Response(BaseModel):
     roll_num: str
     present_dates: List[date]
@@ -45,3 +49,13 @@ class Student_ViewAttendance_Response(BaseModel):
 class Teacher_ViewAttendance_Response(BaseModel):
     attendance_data: List[Student_ViewAttendance_Response]
     
+class One_Class_Response(BaseModel):
+    class_name: str
+    batch_start_year: int
+    curr_year: int
+    course_id: str
+    department: str
+    branch: str
+    
+class All_Classes_response(BaseModel):
+    all_classes: List[One_Class_Response]
