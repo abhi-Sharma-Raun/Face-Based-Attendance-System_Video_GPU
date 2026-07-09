@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Panel - AI Attendance</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <a href="index.html" class="btn btn-secondary mb-4">⬅️ Back to Main Menu</a>
+        
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+            <h2>👩‍🏫 Instructor Control Panel</h2>
+            <span class="badge badge-success px-3 py-2">Role: Faculty Instructor</span>
+        </div>
+
+        <ul class="nav nav-pills mb-4" id="teacher-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link active" id="tab-mark-attendance" data-toggle="pill" href="#pane-mark-attendance">🔍 Process Video Attendance</a></li>
+            <li class="nav-item"><a class="nav-link" id="tab-enroll-students" data-toggle="pill" href="#pane-enroll-students">➕ Enroll Students in Class</a></li>
+            <li class="nav-item"><a class="nav-link" id="tab-records-history" data-toggle="pill" href="#pane-records-history">📊 Query Class Logs</a></li>
+        </ul>
+
+        <div class="tab-content border p-4 bg-white rounded shadow-sm">
+            <div class="tab-pane fade show active" id="pane-mark-attendance">
+                <h4>Analyze Classroom Video</h4>
+                <div class="form-group max-width-md">
+                    <label class="font-weight-bold">Target Class Identifier</label>
+                    <input type="text" id="attendance-class-name" class="form-control" placeholder="e.g., CS-Elective-A">
+                </div>
+                <div class="upload-zone my-4">
+                    <input type="file" id="attendance-video-input" accept=".mp4,.mov,.avi" class="view-hidden">
+                    <label for="attendance-video-input" class="upload-label m-0">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-link">Select classroom video file...</span>
+                    </label>
+                    <div id="uploaded-video-name" class="file-indicator view-hidden mt-2 font-weight-bold"></div>
+                </div>
+                <video id="attendance-preview" controls class="preview-video view-hidden mb-3"></video>
+                <button id="btn-run-attendance" class="btn btn-success view-hidden btn-lg btn-block">🚀 Execute Inference Scan</button>
+
+                <div id="attendance-results" class="view-hidden mt-4">
+                    <div class="alert alert-success">✅ Frame selection matching sequence completed!</div>
+                    <div class="table-responsive"><table class="data-table" id="results-table"><thead></thead><tbody></tbody></table></div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-enroll-students">
+                <h4>Add Students to Class Group</h4>
+                <form id="form-enroll-students">
+                    <div class="form-group"><label class="font-weight-bold">Target Class Identifier</label><input type="text" id="enroll-class-name" class="form-control" required></div>
+                    <div class="form-group"><label class="font-weight-bold">Comma Separated Roll Numbers</label><textarea id="enroll-student-rolls" class="form-control" rows="4" placeholder="BTECH/10001/22, BTECH/10002/22" required></textarea></div>
+                    <button type="submit" class="btn btn-primary px-4">Map Student Batch</button>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="pane-records-history">
+                <h4>Export Historical Presence Metrics</h4>
+                <form id="form-export-attendance">
+                    <div class="form-group"><label class="font-weight-bold">Class Code Name</label><input type="text" id="export-class-name" class="form-control" required></div>
+                    <div class="form-group"><label class="font-weight-bold">Selective Student Roll Filters (Optional)</label><input type="text" id="export-student-rolls" class="form-control" placeholder="Leave blank to export entire class profile"></div>
+                    <button type="submit" class="btn btn-info px-4">📥 Download Export CSV</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script type="module">
+        import { initTeacherPanel } from './src/panels/teacher.js';
+        window.addEventListener('DOMContentLoaded', initTeacherPanel);
+    </script>
+</body>
+</html>

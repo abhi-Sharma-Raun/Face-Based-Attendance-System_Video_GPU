@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - AI Attendance</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <a href="index.html" class="btn btn-secondary mb-4">⬅️ Back to Main Menu</a>
+        
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+            <h2>🎓 Student Self-Service Portal</h2>
+            <span class="badge badge-primary px-3 py-2">Role: Registered Student</span>
+        </div>
+
+        <ul class="nav nav-pills mb-4" id="student-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-register-face" data-toggle="pill" href="#pane-register-face">📸 Identity Facial Mapping</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-view-my-attendance" data-toggle="pill" href="#pane-view-my-attendance">📅 Check My Attendance</a>
+            </li>
+        </ul>
+
+        <div class="tab-content border p-4 bg-white rounded shadow-sm">
+            <div class="tab-pane fade show active" id="pane-register-face">
+                <h4>Biometric Identity Registration</h4>
+                <p class="text-muted">Perform an automated three-angle profile facial verification stream.</p>
+                
+                <div class="form-grid mb-4">
+                    <div class="form-group">
+                        <label class="font-weight-bold">Full Name</label>
+                        <input type="text" id="reg-name" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Roll Number</label>
+                        <input type="text" id="reg-roll" class="form-control" placeholder="BTECH/10001/22">
+                    </div>
+                    <div class="form-group full-width-field">
+                        <label class="font-weight-bold">Email Address</label>
+                        <input type="email" id="reg-email" class="form-control" placeholder="john.doe@example.com">
+                    </div>
+                </div>
+
+                <div class="scan-wrapper my-4 text-center">
+                    <button id="btn-start-scan" class="btn btn-primary btn-lg px-5">🎥 Start Profiling Stream</button>
+                    <div id="scan-active-status" class="alert alert-warning view-hidden m-0">⏳ Webcam active. Align your face matching the prompts...</div>
+
+                    <div id="video-wrapper" class="video-container view-hidden">
+                        <video id="webcam" autoplay playsinline class="video-element"></video>     
+                        <canvas id="canvas-overlay" class="overlay-canvas"></canvas>
+                        <div id="capture-hud" class="hud-counter">Captured: []</div>
+                    </div>
+
+                    <div id="scan-success-status" class="alert alert-success view-hidden m-0">
+                        <h5>🎉 Profile Arrays Verified!</h5>
+                        <button id="btn-retake-scan" class="btn btn-outline-secondary btn-sm">🔄 Discard & Retake Scan</button>
+                    </div>
+                </div>
+
+                <button id="btn-submit-registration" class="btn btn-primary btn-block btn-lg">🚀 Complete Enrollment</button>
+            </div>
+
+            <div class="tab-pane fade" id="pane-view-my-attendance">
+                <h4>Personal Presence Timelines</h4>
+                <form id="form-query-attendance" class="form-grid mb-4">
+                    <div class="form-group"><label class="font-weight-bold">Your Roll Number</label><input type="text" id="query-roll" class="form-control" placeholder="BTECH/10001/22" required></div>
+                    <div class="form-group"><label class="font-weight-bold">Class Code Name</label><input type="text" id="query-class" class="form-control" placeholder="e.g., CS-Elective-A" required></div>
+                    <div class="form-group"><label class="font-weight-bold">Start Date</label><input type="date" id="query-start-date" class="form-control"></div>
+                    <div class="form-group"><label class="font-weight-bold">End Date</label><input type="date" id="query-end-date" class="form-control"></div>
+                    <div class="form-group full-width-field mt-2"><button type="submit" class="btn btn-primary px-5">🔍 Run Verification Lookup</button></div>
+                </form>
+
+                <div id="student-query-results" class="view-hidden">
+                    <hr /><h5 class="mb-3">Verified Present Instances Matrix</h5>
+                    <div class="table-responsive max-width-md">
+                        <table class="data-table" id="student-records-table">
+                            <thead><tr><th>Target Date Identity Log</th><th>Verification Status</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script type="module">
+        import { initStudentPanel } from './src/panels/student.js';
+        window.addEventListener('DOMContentLoaded', initStudentPanel);
+    </script>
+</body>
+</html>
