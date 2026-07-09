@@ -8,7 +8,7 @@ class General_201_response(BaseModel):
 
 class PresentStudent(BaseModel):
     name: str
-    roll_num: int
+    roll_num: str
     
 class Video_AttendanceResponse(BaseModel):
     students: List[PresentStudent]

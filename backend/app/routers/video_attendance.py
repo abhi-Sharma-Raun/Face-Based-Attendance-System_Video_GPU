@@ -6,7 +6,8 @@ import numpy as np
 import traceback
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Form, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import select, insert
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from datetime import date
 from ..utils.models_frame_selection import select_nbd_frame_batch, get_det_rec_model
 from ..utils.qdrant_utils import qdrant_cosine_search
@@ -103,8 +104,8 @@ async def mark_attendance(class_name: str = Form(...), video: UploadFile = File(
     print(f"! Embedding Extraction done for recognition !")
     
     try:
-        enrolled_studs_rolls = [stud.roll_num for stud in enrolled_students]
-        qd_response = qdrant_cosine_search(extracted_embeddings, purpose="attendance", studs_ids=enrolled_studs_rolls)
+        enrolled_studs_ids = [stud.user_id for stud in enrolled_students]
+        qd_response = qdrant_cosine_search(extracted_embeddings, purpose="attendance", studs_ids=enrolled_studs_ids)
     except Exception:
         traceback.print_exc()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Vector DB similarity search failed")
