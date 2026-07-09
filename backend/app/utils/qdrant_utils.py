@@ -10,13 +10,12 @@ def build_query(embedding, shared_filter=None):
     embed_list = embedding.tolist()
     
     prefetch_ = [
-        Prefetch(query=embed_list, using="front", filter=shared_filter, params=params),
-        Prefetch(query=embed_list, using="left", filter=shared_filter, params=params),
-        Prefetch(query=embed_list, using="right", filter=shared_filter, params=params),
+        Prefetch(query=embed_list, using="front", filter=shared_filter, limit=1, score_threshold=settings.face_similarity_threshold, params=params),
+        Prefetch(query=embed_list, using="left", filter=shared_filter, limit=1, score_threshold=settings.face_similarity_threshold, params=params),
+        Prefetch(query=embed_list, using="right", filter=shared_filter, limit=1, score_threshold=settings.face_similarity_threshold, params=params),
     ]
     query_req = QueryRequest(
-        prefetch=prefetch_, query=FusionQuery(fusion=Fusion.RRF), limit=1, score_threshold=settings.face_similarity_threshold,
-        with_payload=True, with_vector=False,
+        prefetch=prefetch_, query=FusionQuery(fusion=Fusion.RRF), limit=1, with_payload=True, with_vector=False,
     )
     return query_req
 
