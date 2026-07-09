@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     allowed_url_1: str
     allowed_url_2: str
     allowed_url_3: str
+    database_role: str
+    database_password: str
+    database_hostname: str
+    database_region: str
+    database_name: str
     class Config:
         env_file = ".env"
     

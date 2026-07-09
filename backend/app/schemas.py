@@ -36,7 +36,7 @@ class ClassCreate(BaseModel):
     teacher_id: str
     
 class AddSudents_class(BaseModel):
-    student_roll_list=List[str]
+    student_roll_list: List[str]
     class_name: str
     
 class Student_ViewAttendance_Response(BaseModel):

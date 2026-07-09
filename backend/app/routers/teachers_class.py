@@ -1,4 +1,4 @@
-from fastapi import router, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 import uuid_utils
@@ -9,7 +9,7 @@ from ..database import get_db
 from ..qdrant_setup import client
 
 
-router = router.APIRouter(
+router = APIRouter(
     tags=["Teachers and Classes"],
 )
 

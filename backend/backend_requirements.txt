@@ -19,3 +19,6 @@ scipy==1.17.1
 ImageIO==2.37.3
 qdrant-client==1.18.0
 torch==2.12.1
+sqlalchemy==2.0.51
+psycopg2==2.9.12
+uuid_utils==0.16.2

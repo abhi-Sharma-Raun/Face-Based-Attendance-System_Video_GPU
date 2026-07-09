@@ -45,6 +45,7 @@ def view_attendance_student(roll_num: str, class_name: str, db: Session=Depends(
 def view_attendance_teacher(class_name: str, students_roll_list: List[str]=None, db: Session=Depends(get_db)):
     '''
     This route is for teacher for viewing the attendance of selective students. If no students are provided, all students attendance is returned.
+    It returns a csv stream which you can download
     '''
     
     t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()

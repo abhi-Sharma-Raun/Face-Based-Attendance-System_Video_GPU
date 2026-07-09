@@ -12,6 +12,7 @@ client = QdrantClient(
 
 collection_name = "Face_Embeddings-All"
 if client.collection_exists(collection_name=collection_name):
+    client.delete_collection(collection_name=collection_name)
     print("Collection exists")
 else:
     vector_params = VectorParams(size=512,distance=Distance.COSINE)

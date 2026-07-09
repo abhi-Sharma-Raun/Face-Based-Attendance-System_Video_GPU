@@ -14,7 +14,7 @@ class Users(Base):
     __tablename__="users"
     user_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid_utils.uuid7)
     role: Mapped[user_roles] = mapped_column(Enum("teacher", "admin", "student", name="user_roles"), nullable=False)
-    email: Mapped[str] = mapped_column(String, ForeignKey("verified_emails.email_id", ondelete="CASCADE"), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password_hash: Mapped[str|None] = mapped_column(String,nullable=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=text('now()'), nullable=False)
 
