@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-import uuid_utils
+import uuid_utils.compat as uuid_utils
 from qdrant_client.models import Distance, VectorParams, HnswConfigDiff
 from typing import List
 from .. import schemas, models
@@ -28,6 +28,7 @@ def add_teacher(teacher: schemas.TeacherCreate, db: Session = Depends(get_db)):
     new_user = models.Users(user_id=user_id, role="teacher", email=teacher.email)    
     new_teacher = models.Teacher(user_id=user_id, name=teacher.name, email=teacher.email, department=teacher.department)
     db.add(new_user)
+    db.flush()
     db.add(new_teacher)
     db.commit()
     
@@ -75,24 +76,26 @@ def add_student_class(students_class_data: schemas.AddSudents_class, db: Session
     students_roll_list = students_class_data.student_roll_list
     class_name = students_class_data.class_name
      
-    stud_not_exists = None
+    stud_not_exists = []
     stmt = select(models.Students).where(models.Students.roll_num.in_(students_roll_list))
     students = db.scalars(stmt).all()
     exist_studs_rolls = [stud.roll_num for stud in students]
     if len(students) != len(students_roll_list):
         stud_not_exists = [stud_roll for stud_roll in students_roll_list if stud_roll not in exist_studs_rolls]
     
-    t_class =  db.scalars(select(models.Class).where(models.Class.class_name == class_name)).one_or_none
+    t_class =  db.scalars(select(models.Class).where(models.Class.class_name == class_name)).one_or_none()
     if not t_class:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="There is no class with this name")
     
-    t_class.enrolled_students.extend(students)
+    already_enrolled_rolls = [s.roll_num for s in t_class.enrolled_students]
+    new_students = [s for s in students if s.roll_num not in already_enrolled_rolls]
+    t_class.enrolled_students.extend(new_students)
     
     db.commit()
     
     response_str = "All students are registered"
     if len(stud_not_exists)>0:
-        response_str+f" except following--- {stud_not_exists}"
+        response_str = response_str+f" except following--- {stud_not_exists}"
     
     return schemas.General_201_response(message=response_str)
     

@@ -33,7 +33,6 @@ class ClassCreate(BaseModel):
     course_id: str
     department: str
     branch: str
-    teacher_id: str
     
 class AddSudents_class(BaseModel):
     student_roll_list: List[str]
