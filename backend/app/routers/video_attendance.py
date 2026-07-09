@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from datetime import date
+import json
 from ..utils.models_frame_selection import select_nbd_frame_batch, get_det_rec_model
 from ..utils.qdrant_utils import qdrant_cosine_search
 from .. import schemas, models
@@ -94,7 +95,7 @@ async def mark_attendance(class_name: str = Form(...), video: UploadFile = File(
         for face in faces:
             emb = face.embedding
             norm = np.linalg.norm(emb)
-            normalized_emb = emb / norm if norm > 0 else emb
+            normalized_emb = emb / norm  if norm > 0 else emb
             extracted_embeddings.append(normalized_emb)
             
     if not extracted_embeddings:
