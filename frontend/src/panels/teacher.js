@@ -32,6 +32,9 @@ async function runAttendanceAnalysis() {
     try {
         const res = await fetch(ATTENDANCE_ENDPOINT, { method: 'POST', body: formData });
         if (res.ok) { displayAttendanceResults(await res.json()); }
+        else {             
+            const errorData = await res.json(); 
+            alert(`Query Failed: ${errorData.detail || 'Server encountered an error.'}`)}
     } catch { alert("Analysis failed."); }
     finally { btn.disabled = false; btn.innerText = "🚀 Execute Inference Scan"; }
 }
@@ -63,7 +66,11 @@ async function handleStudentEnrollment(e) {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ class_name, student_roll_list: list })
         });
-        if (res.ok) { alert("Enrollment updated!"); document.getElementById('enroll-student-rolls').value = ''; }
+        const data = await res.json();
+        if (res.ok) { alert(data.message); document.getElementById('enroll-student-rolls').value = ''; }
+        else {
+            alert(`Enrollment Error: ${data.detail || 'Unknown error occurred.'}`);
+        }
     } catch { alert("Failed mapping sequence."); }
 }
 

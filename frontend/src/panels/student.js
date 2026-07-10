@@ -116,7 +116,13 @@ async function submitRegistration() {
     try {
         const res = await fetch(REGISTRATION_ENDPOINT, { method: 'POST', body: formData });
         if (res.ok) { alert("Registration complete!"); resetScanState(); window.location.href = "index.html"; }
-    } catch (err) { errorData = await res.json(); alert(errorData.detail); }
+        else {
+            const errorData = await res.json();
+            alert(`Registration Failed: ${errorData.detail || 'Unknown Server Error'}`);
+        }
+        
+    } catch (err) { alert(`Network error encountered: ${err.message}`); }
+    finally { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
 }
 
 async function handleAttendanceQuery(e) {
@@ -143,6 +149,10 @@ async function handleAttendanceQuery(e) {
             data.present_dates.forEach(d => {
                 tbody.innerHTML += `<tr><td><strong>${d}</strong></td><td><span class='badge badge-success'>✔ Present</span></td></tr>`;
             });
+        }
+        else{
+            const errorData = await res.json();
+            alert(`Query Failed: ${errorData.detail || 'Server encountered an error.'}`);
         }
     } catch { alert("Query failed."); }
 }

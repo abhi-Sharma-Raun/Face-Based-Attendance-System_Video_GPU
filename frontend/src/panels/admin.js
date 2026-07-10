@@ -23,7 +23,8 @@ async function handleAddTeacher(e) {
             const data = await res.json();
             alert(`Success: ${data.message}`);
             e.target.reset();
-        } else { alert("Failed to add faculty profile mapping."); }
+        } 
+        else { const errorData = await res.json(); alert(`Query failed: ${errorData || 'Unknown backend error'}`); }
     } catch (err) { alert("Error network payload broadcast: " + err.message); }
 }
 
@@ -48,7 +49,7 @@ async function handleAddClass(e) {
             const data = await res.json();
             alert(`Success: ${data.message}`);
             e.target.reset();
-        } else { alert("Conflict or issue initializing system class parameters."); }
+        } else { const errorData = await res.json(); alert(`Query failed: ${errorData || 'Unknown backend error'}`);}
     } catch (err) { alert("Error writing class structure parameters: " + err.message); }
 }
 
