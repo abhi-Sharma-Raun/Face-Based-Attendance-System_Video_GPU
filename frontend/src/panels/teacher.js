@@ -17,6 +17,15 @@ function handleVideoUpload(event) {
     const preview = document.getElementById('attendance-preview');
     preview.src = URL.createObjectURL(file); preview.classList.remove('view-hidden');
     document.getElementById('btn-run-attendance').classList.remove('view-hidden');
+
+    const resultsContainer = document.getElementById('attendance-results');
+    if (resultsContainer) {
+        resultsContainer.classList.add('view-hidden');
+    }
+    const thead = document.querySelector('#results-table thead');
+    const tbody = document.querySelector('#results-table tbody');
+    if (thead) thead.innerHTML = '';
+    if (tbody) tbody.innerHTML = '';
 }
 
 async function runAttendanceAnalysis() {
