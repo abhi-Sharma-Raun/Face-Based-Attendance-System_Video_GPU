@@ -23,18 +23,24 @@ def view_attendance_student(roll_num: str, class_name: str, db: Session=Depends(
     This route is for students for viewing their attendance
     '''
     
-    
-    t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()
+    try:
+        t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     if not t_class:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The class do not exists")
     
-    stmt = select(models.Attendance).where(models.Attendance.class_id==t_class.class_id, models.Attendance.student_roll==roll_num)
-    if start_date:
-        stmt = stmt.where(models.Attendance.attendance_date >= start_date)
-    if end_date:
-        stmt = stmt.where(models.Attendance.attendance_date <= end_date)
-    stmt = stmt.order_by(models.Attendance.attendance_date.asc())
-    attendance = db.scalars(stmt).all()
+    try:
+        stmt = select(models.Attendance).where(models.Attendance.class_id==t_class.class_id, models.Attendance.student_roll==roll_num)
+        
+        if start_date:
+            stmt = stmt.where(models.Attendance.attendance_date >= start_date)
+        if end_date:
+            stmt = stmt.where(models.Attendance.attendance_date <= end_date)
+        stmt = stmt.order_by(models.Attendance.attendance_date.asc())
+        attendance = db.scalars(stmt).all()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     
     attendance_record_list = [record.attendance_date.isoformat() for record in attendance]
     
@@ -50,7 +56,11 @@ def view_attendance_teacher(students_data: schemas.Teacher_ViewAttendance_Reques
     
     class_name = students_data.class_name
     students_roll_list = students_data.students_roll_list
-    t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()
+    
+    try:
+        t_class = db.scalars(select(models.Class).where(models.Class.class_name==class_name)).one_or_none()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     if not t_class:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The class do not exists")
     
@@ -61,9 +71,14 @@ def view_attendance_teacher(students_data: schemas.Teacher_ViewAttendance_Reques
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["Roll_no", "Present_dates"])
-        
-    attendance_record = db.scalars(stmt).all()
+    
+    try:    
+        attendance_record = db.scalars(stmt).all()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     res={}
+    if not attendance_record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No Attendance Record")
     for v in attendance_record:
         roll_num=v.student_roll
         if roll_num not in res:

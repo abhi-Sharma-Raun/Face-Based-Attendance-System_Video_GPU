@@ -20,17 +20,25 @@ def add_teacher(teacher: schemas.TeacherCreate, db: Session = Depends(get_db)):
     This is for admin. He can add teachers.
     '''
     
-    if db.query(models.Teacher).filter(models.Teacher.email == teacher.email).first():
+    try:
+        is_email_exists = db.query(models.Teacher).filter(models.Teacher.email == teacher.email).first()
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
+    if is_email_exists:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Teacher with email {teacher.email} already exists")
     
     user_id=uuid_utils.uuid7()
     
     new_user = models.Users(user_id=user_id, role="teacher", email=teacher.email)    
     new_teacher = models.Teacher(user_id=user_id, name=teacher.name, email=teacher.email, department=teacher.department)
-    db.add(new_user)
-    db.flush()
-    db.add(new_teacher)
-    db.commit()
+    try:
+        db.add(new_user)
+        db.flush()
+        db.add(new_teacher)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     
     response = schemas.General_201_response(message=f"Teacher {teacher.name} added successfully in department {teacher.department}")
     return response
@@ -46,7 +54,10 @@ def add_class(class_d: schemas.ClassCreate, db: Session = Depends(get_db)):
     This is for admin he can add classes.
     '''
     filter1 = (models.Class.batch_start_year == class_d.batch_start_year) and (models.Class.curr_year == class_d.curr_year) and (models.Class.branch == class_d.branch)
-    dupl =  db.query(models.Class).filter((models.Class.class_name == class_d.class_name) or filter1).first()  
+    try:
+        dupl =  db.query(models.Class).filter((models.Class.class_name == class_d.class_name) or filter1).first()  
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
       
     if dupl and dupl.class_name == class_d.class_name:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"The class {class_d.class_name} exists")
@@ -59,8 +70,12 @@ def add_class(class_d: schemas.ClassCreate, db: Session = Depends(get_db)):
     new_class = models.Class(class_id=class_id, class_name=class_d.class_name, batch_start_year=class_d.batch_start_year,
                              curr_year=class_d.curr_year, course_id=class_d.course_id, department=class_d.department, branch=class_d.branch)
 
-    db.add(new_class)
-    db.commit()
+    try:
+        db.add(new_class)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     
     response = schemas.General_201_response(message=f"Class-{class_d.class_name} for course-{class_d.course_id}, branch-{class_d.branch} and batch-{class_d.branch} registered successfully")    
     return response
@@ -77,13 +92,20 @@ def add_student_class(students_class_data: schemas.AddSudents_class, db: Session
     class_name = students_class_data.class_name
      
     stud_not_exists = []
-    stmt = select(models.Students).where(models.Students.roll_num.in_(students_roll_list))
-    students = db.scalars(stmt).all()
+    try:
+        stmt = select(models.Students).where(models.Students.roll_num.in_(students_roll_list))
+        students = db.scalars(stmt).all()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail= "Unexpected Error")
+    
     exist_studs_rolls = [stud.roll_num for stud in students]
     if len(students) != len(students_roll_list):
         stud_not_exists = [stud_roll for stud_roll in students_roll_list if stud_roll not in exist_studs_rolls]
     
-    t_class =  db.scalars(select(models.Class).where(models.Class.class_name == class_name)).one_or_none()
+    try:
+        t_class =  db.scalars(select(models.Class).where(models.Class.class_name == class_name)).one_or_none()
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     if not t_class:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="There is no class with this name")
     
@@ -91,7 +113,10 @@ def add_student_class(students_class_data: schemas.AddSudents_class, db: Session
     new_students = [s for s in students if s.roll_num not in already_enrolled_rolls]
     t_class.enrolled_students.extend(new_students)
     
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     
     response_str = "All students are registered"
     if len(stud_not_exists)>0:
@@ -103,7 +128,10 @@ def add_student_class(students_class_data: schemas.AddSudents_class, db: Session
 @router.get("/class/view_all_classes", response_model=schemas.All_Classes_response)
 def view_all_classes(db: Session=Depends(get_db)):
     
-    all_classes = db.scalars(select(models.Class)).all()
+    try:
+        all_classes = db.scalars(select(models.Class)).all()
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unexpected Error")
     
     if not all_classes:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="There are no classes")
